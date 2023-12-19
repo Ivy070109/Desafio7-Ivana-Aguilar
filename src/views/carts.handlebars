@@ -1,0 +1,27 @@
+<div id="titlePrincipal">
+    <h2>Carrito</h2>
+</div>
+
+<div class="form-cart">
+  {{#each cartsProducts}}
+    <li class="card text-center mt-2 mb-2" style="width: 20rem">
+      <h3>ID: {{this._id}}</h3>
+      <h3 class="card-title">Producto: {{this.product.title}}</h3>
+      <h5>Precio: ${{this.product.price}}</h5>
+      <h5>Categoría: {{this.id_product.category}}</h5>
+      <div class="border rounded-4">
+        <h5>Descripción:</h5>
+        <p class="card-text">{{this.id_prod.description}}</p>
+      </div>
+      <h5 class="mt-2">Stock:
+        {{this.id_prod.stock}}
+        || Código:{{this.id_prod.code}}</h5>
+      <h3>Cantidad: {{this.quantity}}</h3>
+    </li>
+  {{/each}}
+</div>
+
+
+{{!--
+<script src="/socket.io/socket.io.js"></script> --}}
+<script src="/static/js/carts.js"></script>
