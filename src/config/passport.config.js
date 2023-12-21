@@ -1,15 +1,15 @@
 import passport from 'passport'
 import LocalStrategy from 'passport-local'
-import userModel from '../models/user.model.js'
+import userModel from '../dao/models/users.model.js'
 import { createHash, isValidPassword } from '../utils.js'
 
 const initPassport = () => {
     const verifyRegistration = async (req, username, password, done) => {
         try {
-            const { first_name, last_name, email, gender } = req.body
+            const { first_name, last_name, email, age } = req.body
 
-            if (!first_name || !last_name || !email || !gender) {
-                return done('Se requiere first_name, last_name, email y gender en el body', false)
+            if (!first_name || !last_name || !email || !age) {
+                return done('Se requieren los campos completos', false)
             }
 
             const user = await userModel.findOne({ email: username })
@@ -20,7 +20,7 @@ const initPassport = () => {
                 first_name,
                 last_name,
                 email,
-                gender,
+                age,
                 password: createHash(password)
             }
 
@@ -31,6 +31,24 @@ const initPassport = () => {
             return done(`Error passport local: ${err.message}`)
         }
     }
+
+    //función para la restauración de la contraseña
+    const verifyRestoration = async (req, username, password, done) => {
+        try {
+            if (username.length === 0 || password.length === 0) {
+                return done('Se requieren los campos completos', false)
+            } 
+
+            const user = await userModel.findOne({ email: username })
+            if (!user) return done(null, false)
+
+            const process = await userModel.findOneAndUpdate({ email: username }, { password: createHash(password) })
+
+            return done(null, process)
+        } catch(err) {
+            return done(`Error passport local: ${err.message}`)
+        }
+    }
     
     passport.use('register', new LocalStrategy({
         passReqToCallback: true,
@@ -38,6 +56,12 @@ const initPassport = () => {
         passwordField: 'password'
     }, verifyRegistration))
     
+    passport.use('restore', new LocalStrategy({
+        passReqToCallback: true,
+        usernameField: 'email',
+        passwordField: 'password'
+    }, verifyRestoration))
+
     passport.serializeUser((user, done) => {
         done(null, user._id)
     })

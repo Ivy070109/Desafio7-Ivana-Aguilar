@@ -2,7 +2,13 @@ import { Router } from 'express'
 import usersModel from '../dao/models/users.model.js'
 //importo las funciones de bcrypt
 import { createHash, isValidPassword } from '../utils.js'
+//importar de passport
+import passport from 'passport'
+//importamos el congif de passport
+import initPassport from '../config/passport.config.js'
 
+//inicializo la estrategia de passport
+initPassport()
 const router = Router()
 
 //middleware de autenticación del admin
@@ -52,6 +58,11 @@ router.get('/hash/:pass', async (req, res) => {
     res.status(200).send({ status: 'OK', data: createHash(req.params.pass) })
 })
 
+//endpoint de fail
+router.get('/failregister', async (req, res) => {
+    res.status(400).send({ status: 'ERR', data: 'El usuario ya existe o faltan completar campos obligatorios' })
+})
+
 //Dejaré de utilizar el código harcodeado, reemplazare la autentificación con base de datos
 router.post('/login', async (req, res) => {
     try { 
@@ -70,12 +81,13 @@ router.post('/login', async (req, res) => {
     }
 })
 
+//register con password plano
+/*
 router.post('/register', async (req, res) => {
     try {
         const { first_name, last_name, email, age, password } = req.body
 
         const userExists = await usersModel.findOne({ email })
-
         if (userExists) {
             return res.status(401).json({ status: 'ERR', data: 'El correo ya está registrado' })
         }
@@ -86,7 +98,6 @@ router.post('/register', async (req, res) => {
             email,
             age,
             password
-            //password: createHash()
         })
         
         await newUser.save()
@@ -94,6 +105,24 @@ router.post('/register', async (req, res) => {
         res.status(200).json({ status: 'OK', data: 'Usuario registrado' })
     } catch (err) {
         res.status(400).json({ status: 'ERR', data: err.message })
+    }
+})
+*/
+
+//register con passport
+router.post('/register', passport.authenticate('register', { failureRedirect: '/api/sessions/failregister'}), async (req, res) => {
+    try {
+        res.status(200).send({ status: 'OK', data: 'Usuario registrado' })
+    } catch(err) {
+        res.status(500).send({ status: 'ERR', data: err.message })
+    }
+})
+
+router.post('/restore', passport.authenticate('restore', { failureRedirect: '/api/sessions/failrestore' }), async (req, res) => {
+    try {
+        res.status(200).send({ status: 'OK', data: "Contraseña actualizada" })
+    } catch (err) {
+        res.status(500).send({ status: 'ERR', data: err.message })
     }
 })
 

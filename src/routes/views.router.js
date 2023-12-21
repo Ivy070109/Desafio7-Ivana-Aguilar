@@ -64,5 +64,12 @@ router.get('/login', async (req, res) => {
     } 
 })
 
+router.get('/restore', async (req, res) => {
+    if (req.session.user) {
+        res.redirect('/profile')
+    } else {
+        res.render('restore', {})
+    } 
+})
 
 export default router
