@@ -53,14 +53,30 @@ router.get('/admin', auth, async (req, res) => {
     }
 })
 
-//para hashear passwords pasados
+//para hashear passwords planos anteriores. Es un endpoint de uso interno!
 router.get('/hash/:pass', async (req, res) => {
     res.status(200).send({ status: 'OK', data: createHash(req.params.pass) })
 })
 
-//endpoint de fail
+//endpoint de fail de register
 router.get('/failregister', async (req, res) => {
-    res.status(400).send({ status: 'ERR', data: 'El usuario ya existe o faltan completar campos obligatorios' })
+    res.status(400).send({ status: 'ERR', data: 'El email ya existe o faltan completar campos obligatorios' })
+})
+
+//endpoint de fail restore
+router.get('/failrestore', async (req, res) => {
+    res.status(400).send({ status: 'ERR', data: 'El email no existe o faltan completar campos obligatorios' })
+})
+
+//endpoint de github con autenticación con passport
+router.get('/github', passport.authenticate('github', { scope: ['user: email'] }), async (req, res) => {
+})
+
+//endpoint de callback de github
+router.get('/githubcallback', passport.authenticate('github', { failureRedirect: '/login' }), async (req, res) => {
+    req.session.user = { username: req.user.email, admin: true }
+    // req.session.user = req.user
+    res.redirect('/profile')
 })
 
 //Dejaré de utilizar el código harcodeado, reemplazare la autentificación con base de datos
@@ -118,6 +134,7 @@ router.post('/register', passport.authenticate('register', { failureRedirect: '/
     }
 })
 
+//restaurar contraseña
 router.post('/restore', passport.authenticate('restore', { failureRedirect: '/api/sessions/failrestore' }), async (req, res) => {
     try {
         res.status(200).send({ status: 'OK', data: "Contraseña actualizada" })
